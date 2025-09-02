@@ -3,14 +3,32 @@ import React, { useState } from "react";
 import { Download, Copy, UploadCloud } from "lucide-react";
 import toast from "react-hot-toast";
 export default function OcrUploader() {
+  const MAX_FILE_SIZE = 1 * 1024 * 1024;
   const [files, setFiles] = useState<File[]>([]);
   const [textResult, setTextResult] = useState<string>("");
   const [jsonResult, setJsonResult] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function onFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) return;
-    setFiles(Array.from(e.target.files));
+
+    const selectedFiles = Array.from(e.target.files);
+    const oversizedFiles = selectedFiles.filter((f) => f.size > MAX_FILE_SIZE);
+
+    if (oversizedFiles.length) {
+      setError(
+        `File(s) too large: ${oversizedFiles
+          .map((f) => f.name)
+          .join(", ")}. Max size is 1 MB.`
+      );
+      // Optionally, remove oversized files
+      const validFiles = selectedFiles.filter((f) => f.size <= MAX_FILE_SIZE);
+      setFiles(validFiles);
+    } else {
+      setError(null);
+      setFiles(selectedFiles);
+    }
   }
 
   async function toDataUrl(file: File) {
@@ -37,8 +55,18 @@ export default function OcrUploader() {
           OCREngine: "2",
         }),
       });
+
+      if (!res.ok) {
+        const text = await res.text();
+        setError(text);
+        throw new Error(text || "OCR API error");
+      }
+
       const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      if (json.error) {
+        setError(json.error);
+        throw new Error(json.error);
+      }
 
       // setJsonResult(json); // <-- store full response
       const texts: string[] = [];
@@ -74,8 +102,7 @@ export default function OcrUploader() {
       setTextResult(texts.join("\n\n---\n\n"));
       setJsonResult(transformed);
     } catch (err: any) {
-      console.error(err);
-      alert("OCR failed: " + err.message);
+      setError(err.message || "OCR failed");
     } finally {
       setLoading(false);
     }
@@ -175,6 +202,11 @@ export default function OcrUploader() {
               </button>
             )}
           </div>
+        </div>
+      )}
+      {error && (
+        <div className="max-w-3xl mx-auto mt-4 p-4 bg-red-600/30 text-red-100 rounded-lg border border-red-400">
+          ⚠ {error}
         </div>
       )}
     </main>
