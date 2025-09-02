@@ -22,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={orbitron.variable}>
       <HydrationFix />
-      <body className="bg-black text-white min-h-screen">{children}</body>
+      <body className="bg-black text-white min-h-screen font-sans">
+        {children}
+      </body>
     </html>
   );
 }
