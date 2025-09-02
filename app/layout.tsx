@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Orbitron } from "next/font/google";
+import HydrationFix from "./src/components/HydrationFix";
 
 const orbitron = Orbitron({
   subsets: ["latin"],
@@ -20,6 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={orbitron.variable}>
+      <HydrationFix />
       <body className="bg-black text-white min-h-screen">{children}</body>
     </html>
   );

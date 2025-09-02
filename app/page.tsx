@@ -77,7 +77,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#0f044c] via-[#1a0033] to-[#000] text-white p-8">
       <h1 className="text-4xl font-bold text-center mb-8  tracking-widest text-cyan-400 drop-shadow-lg">
-        Cyber OCR
+        Saiful OCR
       </h1>
 
       {/* Upload Section */}
