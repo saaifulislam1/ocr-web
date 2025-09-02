@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Download, Copy, UploadCloud } from "lucide-react";
+import toast from "react-hot-toast";
 export default function OcrUploader() {
   const [files, setFiles] = useState<File[]>([]);
   const [textResult, setTextResult] = useState<string>("");
@@ -47,17 +48,20 @@ export default function OcrUploader() {
         if (!r.success) return; // skip errors
 
         // raw_text: replace newlines with commas
-        const rawText = (r.raw_text || "")
+        const lines = (r.raw_text || "")
           .split("\n")
           .map((line: string) => line.trim())
           .filter(Boolean)
-          .join(",\n");
+          .map(
+            (line: string, i: number, arr: string | any[]) =>
+              i < arr.length - 1 ? line + "," : line // add comma except last line
+          );
 
-        texts.push(rawText);
+        texts.push(lines.join("\n"));
 
         transformed.push({
           fileName: files[idx]?.name || `file-${idx + 1}`,
-          raw_text: rawText,
+          raw_text: lines,
           keywords: r.keywords || [],
         });
       });
@@ -78,7 +82,9 @@ export default function OcrUploader() {
   }
 
   function handleCopy() {
-    navigator.clipboard.writeText(textResult);
+    navigator.clipboard.writeText(textResult).then(() => {
+      toast.success("Copied to clipboard!");
+    });
     // alert("Copied to clipboard!");
   }
 
