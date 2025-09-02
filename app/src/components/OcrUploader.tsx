@@ -4,6 +4,7 @@ import { Download, Copy, UploadCloud } from "lucide-react";
 export default function OcrUploader() {
   const [files, setFiles] = useState<File[]>([]);
   const [textResult, setTextResult] = useState<string>("");
+  const [jsonResult, setJsonResult] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   function onFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -23,6 +24,7 @@ export default function OcrUploader() {
   async function handleSubmit() {
     setLoading(true);
     setTextResult("");
+    setJsonResult([]); // reset JSON each time
     try {
       const imageData = await Promise.all(files.map((f) => toDataUrl(f))); // returns data URLs
       const res = await fetch("/api/ocr", {
@@ -37,19 +39,36 @@ export default function OcrUploader() {
       const json = await res.json();
       if (json.error) throw new Error(json.error);
 
+      // setJsonResult(json); // <-- store full response
       const texts: string[] = [];
-      const errors: string[] = [];
+      const transformed: any[] = [];
+
       (json.results || []).forEach((r: any, idx: number) => {
-        if (r.success) texts.push(r.raw_text || "");
-        else errors.push(`Image ${idx + 1}: ${r.error}`);
+        if (!r.success) return; // skip errors
+
+        // raw_text: replace newlines with commas
+        const rawText = (r.raw_text || "")
+          .split("\n")
+          .map((line: string) => line.trim())
+          .filter(Boolean)
+          .join(",\n");
+
+        texts.push(rawText);
+
+        transformed.push({
+          fileName: files[idx]?.name || `file-${idx + 1}`,
+          raw_text: rawText,
+          keywords: r.keywords || [],
+        });
       });
 
-      if (errors.length) {
-        console.warn("OCR errors:", errors);
-        // optionally show errors to user in UI
-      }
+      // if (errors.length) {
+      //   console.warn("OCR errors:", errors);
+      //   // optionally show errors to user in UI
+      // }
 
       setTextResult(texts.join("\n\n---\n\n"));
+      setJsonResult(transformed);
     } catch (err: any) {
       console.error(err);
       alert("OCR failed: " + err.message);
@@ -72,6 +91,19 @@ export default function OcrUploader() {
     a.click();
     URL.revokeObjectURL(url);
   }
+  function handleDownloadJson() {
+    if (!jsonResult.length) return;
+    const blob = new Blob([JSON.stringify(jsonResult, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ocr-result.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#0f044c] via-[#1a0033] to-[#000] text-white p-8">
       <h1 className="text-4xl font-bold text-center mb-8  tracking-widest text-cyan-400 drop-shadow-lg  ">
@@ -128,6 +160,14 @@ export default function OcrUploader() {
             >
               <Download size={18} /> Download .txt
             </button>
+            {jsonResult && (
+              <button
+                onClick={handleDownloadJson}
+                className="flex font-bold items-center gap-2 px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-500 transition"
+              >
+                <Download size={18} /> Download .json
+              </button>
+            )}
           </div>
         </div>
       )}
