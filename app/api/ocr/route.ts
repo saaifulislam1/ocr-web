@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import sharp from "sharp";
 
 const OCR_API_URL = "https://api.ocr.space/parse/image";
-const OCR_API_KEY = process.env.OCR_SPACE_API_KEY ?? "K85469793588957";
+const OCR_API_KEY = process.env.OCR_API_KEY ?? "";
 
 function splitKeywords(text: string) {
   const regex = /\s+|,|。|、|!|！|\?|？/g;
