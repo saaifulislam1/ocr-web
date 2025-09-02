@@ -13,10 +13,8 @@ const config: Config = {
     extend: {
       fontFamily: {
         // This is your default Orbitron font
-        sans: ["var(--font-orbitron)", "sans-serif"],
-
-        // Add this new entry for a standard system font
-        body: ["Inter", ...defaultTheme.fontFamily.sans],
+        sans: ["var(--font-poppins)", "sans-serif"], // body text
+        // orbitron: ["var(--font-orbitron)", "sans-serif"], // headings
       },
     },
   },
