@@ -73,6 +73,7 @@ export async function POST(req: Request) {
 
         const ocrRes = await fetch(OCR_API_URL, { method: "POST", body: form });
         const json = await ocrRes.json();
+        console.log(json);
 
         if (json?.IsErroredOnProcessing) {
           results.push({ success: false, error: json?.ErrorMessage });
