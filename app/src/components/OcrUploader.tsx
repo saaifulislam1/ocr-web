@@ -52,7 +52,7 @@ export default function OcrUploader() {
         body: JSON.stringify({
           images: imageData,
           language: "jpn",
-          OCREngine: "2",
+          OCREngine: "1",
         }),
       });
 
