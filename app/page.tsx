@@ -1,103 +1,138 @@
-import Image from "next/image";
+"use client";
+import React, { useState } from "react";
+import { Download, Copy, UploadCloud } from "lucide-react";
 
-export default function Home() {
+export default function HomePage() {
+  const [files, setFiles] = useState<File[]>([]);
+  const [textResult, setTextResult] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+
+  function onFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files) return;
+    setFiles(Array.from(e.target.files));
+  }
+
+  async function toDataUrl(file: File) {
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleSubmit() {
+    setLoading(true);
+    setTextResult("");
+    try {
+      const imageData = await Promise.all(files.map((f) => toDataUrl(f))); // returns data URLs
+      const res = await fetch("/api/ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: imageData,
+          language: "jpn",
+          OCREngine: "2",
+        }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+
+      const texts: string[] = [];
+      const errors: string[] = [];
+      (json.results || []).forEach((r: any, idx: number) => {
+        if (r.success) texts.push(r.raw_text || "");
+        else errors.push(`Image ${idx + 1}: ${r.error}`);
+      });
+
+      if (errors.length) {
+        console.warn("OCR errors:", errors);
+        // optionally show errors to user in UI
+      }
+
+      setTextResult(texts.join("\n\n---\n\n"));
+    } catch (err: any) {
+      console.error(err);
+      alert("OCR failed: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(textResult);
+    alert("Copied to clipboard!");
+  }
+
+  function handleDownload() {
+    const blob = new Blob([textResult], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ocr-result.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="min-h-screen bg-gradient-to-br from-[#0f044c] via-[#1a0033] to-[#000] text-white p-8">
+      <h1 className="text-4xl font-bold text-center mb-8  tracking-widest text-cyan-400 drop-shadow-lg">
+        Cyber OCR
+      </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {/* Upload Section */}
+      <div className="max-w-3xl mx-auto bg-white/5 backdrop-blur-md border border-cyan-500/30 rounded-2xl p-6 shadow-xl">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <UploadCloud className="w-12 h-12 text-pink-500 animate-pulse" />
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={onFilesSelected}
+            className="block text-sm text-gray-300 file:mr-4 file:py-2 file:px-4
+              file:rounded-full file:border-0
+              file:text-sm file:font-semibold
+              file:bg-pink-600 file:text-white
+              hover:file:bg-pink-500"
+          />
+          <button
+            onClick={handleSubmit}
+            disabled={loading || files.length === 0}
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-pink-600 to-purple-700 
+              text-white font-semibold shadow-lg hover:scale-105 transition disabled:opacity-50"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {loading ? "Processing..." : `Extract Text (${files.length})`}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+
+      {/* Results */}
+      {textResult && (
+        <div className="max-w-3xl mx-auto mt-8 bg-white/5 backdrop-blur-md border border-pink-500/30 rounded-2xl p-6 shadow-xl">
+          <h2 className="text-xl mb-4 text-cyan-300 font-semibold">
+            Extracted Text
+          </h2>
+          <textarea
+            value={textResult}
+            readOnly
+            className="w-full h-64 p-3 bg-black/70 text-green-300 font-mono rounded-md resize-none border border-cyan-500/20"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 transition"
+            >
+              <Copy size={18} /> Copy
+            </button>
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-pink-600 hover:bg-pink-500 transition"
+            >
+              <Download size={18} /> Download .txt
+            </button>
+          </div>
+        </div>
+      )}
+    </main>
   );
 }
