@@ -138,31 +138,40 @@ export default function OcrUploader() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0f044c] via-[#1a0033] to-[#000] text-white p-8">
-      <h1 className="text-4xl font-bold text-center mb-8  tracking-widest text-cyan-400 drop-shadow-lg  ">
+    <main className="min-h-screen bg-gradient-to-br from-[#0f044c] via-[#1a0033] to-black text-white px-4 py-8">
+      {/* Title */}
+      <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-10 tracking-widest text-cyan-400 drop-shadow-lg">
         Saiful OCR
       </h1>
 
       {/* Upload Section */}
-      <div className="max-w-3xl mx-auto bg-white/5 backdrop-blur-md border border-cyan-500/30 rounded-2xl p-6 shadow-xl">
-        <div className="flex flex-col items-center justify-center gap-4">
-          <UploadCloud className="w-12 h-12 text-pink-500 animate-pulse " />
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={onFilesSelected}
-            className="block text-sm text-gray-300   file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-pink-600 file:text-white
-              hover:file:bg-pink-500"
-          />
+      <div className="max-w-2xl mx-auto bg-white/10 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-8 shadow-2xl">
+        <div className="flex flex-col items-center gap-5">
+          <UploadCloud className="w-14 h-14 text-pink-500 animate-bounce" />
+
+          {/* File Input */}
+          <label className="w-full">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={onFilesSelected}
+              className="block w-full text-sm text-gray-300
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-xl file:border-0
+            file:text-sm file:font-semibold
+            file:bg-gradient-to-r file:from-pink-600 file:to-purple-600 file:text-white
+            hover:file:from-pink-500 hover:file:to-purple-500 cursor-pointer"
+            />
+          </label>
+
+          {/* Submit Button */}
           <button
             onClick={handleSubmit}
             disabled={loading || files.length === 0}
-            className="px-6 py-3   rounded-xl bg-gradient-to-r from-pink-600 to-purple-700 
-              text-white font-semibold shadow-lg hover:scale-105 transition disabled:opacity-50"
+            className="px-8 py-3 rounded-xl bg-gradient-to-r from-pink-600 to-purple-700 
+          text-white font-semibold shadow-lg hover:scale-105 hover:shadow-xl
+          transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Processing..." : `Extract Text (${files.length})`}
           </button>
@@ -171,41 +180,49 @@ export default function OcrUploader() {
 
       {/* Results */}
       {textResult && (
-        <div className="max-w-3xl mx-auto mt-8 bg-white/5 backdrop-blur-md border border-pink-500/30 rounded-2xl p-6 shadow-xl">
-          <h2 className="text-xl mb-4 text-cyan-300 font-semibold  ">
+        <div className="max-w-2xl mx-auto mt-10 bg-white/10 backdrop-blur-xl border border-pink-500/30 rounded-2xl p-6 shadow-2xl">
+          <h2 className="text-lg md:text-xl mb-4 text-cyan-300 font-semibold">
             Extracted Text
           </h2>
+
+          {/* Text Output */}
           <textarea
             value={textResult}
             readOnly
-            className="w-full h-64 p-3 bg-black/70 font-body text-green-300 font-mono rounded-md resize-none border border-cyan-500/20"
+            className="w-full h-64 p-4 bg-black/60 font-mono text-green-300 rounded-lg resize-none border border-cyan-500/20 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
-          <div className="flex gap-4 mt-4">
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3 mt-5">
             <button
               onClick={handleCopy}
-              className="flex    font-bold items-center gap-2 px-4 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 transition"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 transition font-semibold"
             >
-              <Copy size={18} /> Copy
+              <Copy className="w-5 h-5" /> Copy
             </button>
+
             <button
               onClick={handleDownload}
-              className="flex   font-bold items-center gap-2 px-4 py-2 rounded-md bg-pink-600 hover:bg-pink-500 transition"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-pink-600 hover:bg-pink-500 transition font-semibold"
             >
-              <Download size={18} /> Download .txt
+              <Download className="w-5 h-5" /> Download .txt
             </button>
+
             {jsonResult && (
               <button
                 onClick={handleDownloadJson}
-                className="flex font-bold items-center gap-2 px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-500 transition"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 transition font-semibold"
               >
-                <Download size={18} /> Download .json
+                <Download className="w-5 h-5" /> Download .json
               </button>
             )}
           </div>
         </div>
       )}
+
+      {/* Error Message */}
       {error && (
-        <div className="max-w-3xl mx-auto mt-4 p-4 bg-red-600/30 text-red-100 rounded-lg border border-red-400">
+        <div className="max-w-2xl mx-auto mt-6 p-4 bg-red-600/30 text-red-100 rounded-lg border border-red-400 text-center text-sm">
           ⚠ {error}
         </div>
       )}
