@@ -138,61 +138,66 @@ export default function OcrUploader() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0f044c] via-[#1a0033] to-black text-white px-4 py-8">
+    <main className="min-h-screen bg-gradient-to-br from-[#0f044c] via-[#1a0033] to-black text-white px-4 py-10">
       {/* Title */}
-      <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-10 tracking-widest text-cyan-400 drop-shadow-lg">
+      <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-12 tracking-widest text-cyan-400 drop-shadow-lg">
         Saiful OCR
       </h1>
 
       {/* Upload Section */}
-      <div className="max-w-2xl mx-auto bg-white/10 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-8 shadow-2xl">
-        <div className="flex flex-col items-center gap-5">
-          <UploadCloud className="w-14 h-14 text-pink-500 animate-bounce" />
+      <div className="max-w-3xl mx-auto bg-white/10 backdrop-blur-xl border border-dashed border-cyan-400 rounded-2xl p-10 shadow-2xl">
+        <div className="flex flex-col items-center text-center gap-5">
+          {/* Upload Icon */}
+          <UploadCloud className="w-14 h-14 text-cyan-400 opacity-80" />
 
-          {/* File Input */}
-          <label className="w-full">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={onFilesSelected}
-              className="block w-full text-sm text-gray-300
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-xl file:border-0
-            file:text-sm file:font-semibold
-            file:bg-gradient-to-r file:from-pink-600 file:to-purple-600 file:text-white
-            hover:file:from-pink-500 hover:file:to-purple-500 cursor-pointer"
-            />
-          </label>
+          <p className="text-gray-300 text-lg">
+            Drag & drop your images here, or{" "}
+            <label className="text-pink-400 font-semibold cursor-pointer hover:underline">
+              browse
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={onFilesSelected}
+                className="hidden"
+              />
+            </label>
+          </p>
 
-          {/* Submit Button */}
+          {/* Selected files */}
+          {files.length > 0 && (
+            <p className="text-sm text-green-300">
+              {files.length} file{files.length > 1 ? "s" : ""} selected
+            </p>
+          )}
+
+          {/* Action Button */}
           <button
             onClick={handleSubmit}
             disabled={loading || files.length === 0}
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-pink-600 to-purple-700 
+            className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-pink-600 to-purple-700 
           text-white font-semibold shadow-lg hover:scale-105 hover:shadow-xl
           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Processing..." : `Extract Text (${files.length})`}
+            {loading ? "Processing..." : "Start OCR"}
           </button>
         </div>
       </div>
 
       {/* Results */}
       {textResult && (
-        <div className="max-w-2xl mx-auto mt-10 bg-white/10 backdrop-blur-xl border border-pink-500/30 rounded-2xl p-6 shadow-2xl">
+        <div className="max-w-3xl mx-auto mt-10 bg-white/10 backdrop-blur-xl border border-pink-500/30 rounded-2xl p-6 shadow-2xl">
           <h2 className="text-lg md:text-xl mb-4 text-cyan-300 font-semibold">
             Extracted Text
           </h2>
 
-          {/* Text Output */}
           <textarea
             value={textResult}
             readOnly
             className="w-full h-64 p-4 bg-black/60 font-mono text-green-300 rounded-lg resize-none border border-cyan-500/20 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
 
-          {/* Action Buttons */}
+          {/* Buttons */}
           <div className="flex flex-wrap gap-3 mt-5">
             <button
               onClick={handleCopy}
@@ -220,9 +225,9 @@ export default function OcrUploader() {
         </div>
       )}
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
-        <div className="max-w-2xl mx-auto mt-6 p-4 bg-red-600/30 text-red-100 rounded-lg border border-red-400 text-center text-sm">
+        <div className="max-w-3xl mx-auto mt-6 p-4 bg-red-600/30 text-red-100 rounded-lg border border-red-400 text-center text-sm">
           ⚠ {error}
         </div>
       )}
